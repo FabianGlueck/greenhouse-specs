@@ -1,0 +1,103 @@
+openapi: 3.0.3
+info:
+  title: Greenhouse Data-Server API
+  version: 1.0.0
+  description: |
+    REST-API des Data-Servers auf dem Raspberry Pi.
+    Liefert Sensor-Daten aus dem Smart-Greenhouse.
+    Status: STUB — aus aktueller Implementierung in `data-server/main.py` zu vervollständigen.
+
+servers:
+  - url: http://{host}:5000
+    description: Pi im lokalen Netz
+    variables:
+      host:
+        default: raspberrypi.local
+        description: Hostname oder IP des Pi
+
+paths:
+  /api/latest:
+    get:
+      summary: Letzte gemessene Sensor-Werte
+      responses:
+        '200':
+          description: Aktuelle Werte (jünger als 10 s)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reading'
+        '503':
+          description: Stale — letzte Messung älter als 10 s
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/history:
+    get:
+      summary: Historische Messwerte
+      parameters:
+        - name: hours
+          in: query
+          schema:
+            type: integer
+            default: 24
+          description: Zeitfenster rückwirkend in Stunden
+      responses:
+        '200':
+          description: Liste von Messwerten
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Reading'
+
+  /api/stats:
+    get:
+      summary: Aggregierte Statistiken (min/max/avg)
+      responses:
+        '200':
+          description: Statistik-Werte
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Stats'
+
+components:
+  schemas:
+    Reading:
+      type: object
+      description: STUB — exakte Felder aus aktueller API-Response übernehmen
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        temperature:
+          type: number
+          nullable: true
+        humidity:
+          type: number
+          nullable: true
+        pressure:
+          type: number
+          nullable: true
+        lux:
+          type: number
+          nullable: true
+        soil_left:
+          type: integer
+        soil_mid:
+          type: integer
+        soil_right:
+          type: integer
+
+    Stats:
+      type: object
+      description: TBD — exakte Form aus aktueller API-Response übernehmen
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
